@@ -1,0 +1,9 @@
+# -*- mode: snippet -*-
+# name: movie
+# key: m_
+# --
+* TODO $3
+:PROPERTIES:
+:Runtime:  ${1:0}
+:Top_Lists: ${2:0}
+:END:

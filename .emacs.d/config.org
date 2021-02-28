@@ -1,0 +1,244 @@
+#+TITLE: OrgConfig
+
+* QoL
+** Remove bars
+   #+BEGIN_SRC emacs-lisp :tangle yes
+   (tool-bar-mode -1)
+   (menu-bar-mode -1)
+   (scroll-bar-mode -1)
+   #+END_SRC
+** Edit/Reload config
+*** Edit
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (defun config-visit ()
+    (interactive)
+    (find-file "~/.emacs.d/config.org"))
+  (global-set-key (kbd "C-c e") 'config-visit)
+#+END_SRC
+*** Reload
+#+BEGIN_SRC emacs-lisp :tangle yes
+   (defun config-reload ()
+     (interactive)
+     (org-babel-load-file (expand-file-name "~/.emacs.d/config.org")))
+   (global-set-key (kbd "C-c r") 'config-reload)
+#+END_SRC
+** Remove bells
+   #+begin_src emacs-lisp :tangle yes
+   (setq visible-bell t)
+   #+end_src
+** Startup message
+   #+begin_src emacs-lisp :tangle yes
+   (setq inhibit-startup-message t)
+   #+end_src
+** Load theme
+   #+begin_src emacs-lisp :tangle yes
+   (load-theme 'doom-monokai-spectrum t)
+   #+end_src
+** Column number
+   #+begin_src emacs-lisp :tangle yes
+   (column-number-mode)
+   (global-display-line-numbers-mode t)
+   #+end_src
+** External clipboard
+   #+begin_src emacs-lisp :tangle yes
+   (setq x-select-enable-clipboard t)
+   #+end_src
+** buffers
+** enable ibuffer
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (global-set-key (kbd "C-x C-b") 'ibuffer)
+   #+END_SRC
+** kill current buffer 
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (defun kill-current-buffer ()
+       (interactive)
+       (kill-buffer (current-buffer)))
+     (global-set-key (kbd "C-x k") 'kill-current-buffer)
+   #+END_SRC
+** switch-window
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (use-package switch-window
+       :ensure t
+       :config
+       (setq switch-window-input-style 'minibuffer)
+       (setq switch-window-increase 4)
+       (setq switch-window-threshold 2)
+       (setq switch-window-shortcut-style 'qwerty)
+       (setq switch-window-qwerty-shortcuts
+	     '("a" "s" "d" "f" "h" "j" "k" "l"))
+       :bind
+       ([remap other-window] . switch-window))
+   #+END_SRC
+** Prettify
+   #+BEGIN_SRC emacs-lisp :tangle yes
+      (when window-system (global-prettify-symbols-mode t))
+   #+END_SRC
+** font
+#+begin_src emacs-lisp :tangle yes
+(set-face-attribute 'default nil :family "Source Code Pro" :height 100)
+#+end_src
+* Org
+** agenda
+   #+BEGIN_SRC emacs-lisp :tangle yes
+     (setq org-agenda-files '("~/org"))
+   #+END_SRC
+** indent mode
+   #+begin_src emacs-lisp :tangle yes
+   (add-hook 'org-mode-hook 'org-indent-mode)
+   #+end_src
+* Programming
+** Language server
+   #+begin_src emacs-lisp :tangle yes
+     (use-package lsp-mode
+     :ensure t
+     :init
+     ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+     (setq lsp-keymap-prefix "C-c l")
+     :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+     (python-mode . lsp)
+     ;; if you want which-key integration
+     (lsp-mode . lsp-enable-which-key-integration))
+     :commands lsp)
+     
+     (use-package lsp-ui
+     :ensure t)
+   #+end_src
+* Use-package
+** Yassnippet
+#+BEGIN_SRC emacs-lisp :tangle yes
+  (use-package yasnippet
+	:ensure t
+	:config
+	(use-package yasnippet-snippets
+	  :ensure t)
+	(yas-global-mode t)
+	(define-key yas-minor-mode-map (kbd "<tab>") nil)
+	(define-key yas-minor-mode-map (kbd "C-'") #'yas-expand)
+	(add-to-list #'yas-snippet-dirs "~/.emacs.d/snippets/")
+	(yas-reload-all)
+	(setq yas-prompt-functions '(yas-ido-prompt))
+	(defun help/yas-after-exit-snippet-hook-fn ()
+	  (prettify-symbols-mode)
+	  (prettify-symbols-mode))
+	(add-hook 'yas-after-exit-snippet-hook #'help/yas-after-exit-snippet-hook-fn)
+	:diminish yas-minor-mode)
+#+END_SRC
+** which-key
+   #+begin_src emacs-lisp :tangle yes
+   (use-package which-key
+   :ensure t
+   :diminish which-key-mode
+   :init (which-key-mode)
+   :config (setq which-key-idle-delay 0.6)
+   )
+   #+end_src
+** ivy
+   #+begin_src emacs-lisp :tangle yes
+   (use-package ivy
+   :config (ivy-mode)
+   )
+   
+   (use-package ivy-rich
+   :ensure t
+   :init (ivy-rich-mode 1))
+   
+   (setq ivy-use-virtual-buffers t)
+   (setq enable-recursive-minibuffers t)
+   ;; enable this if you want `swiper' to use it
+   ;; (setq search-default-mode #'char-fold-to-regexp)
+   (global-set-key "\C-s" 'swiper)
+   (global-set-key (kbd "C-c C-r") 'ivy-resume)
+   (global-set-key (kbd "<f6>") 'ivy-resume)
+   (global-set-key (kbd "M-x") 'counsel-M-x)
+   (global-set-key (kbd "C-x C-f") 'counsel-find-file)
+   (global-set-key (kbd "<f1> f") 'counsel-describe-function)
+   (global-set-key (kbd "<f1> v") 'counsel-describe-variable)
+   (global-set-key (kbd "<f1> o") 'counsel-describe-symbol)
+   (global-set-key (kbd "<f1> l") 'counsel-find-library)
+   (global-set-key (kbd "<f2> i") 'counsel-info-lookup-symbol)
+   (global-set-key (kbd "<f2> u") 'counsel-unicode-char)
+   (global-set-key (kbd "C-c g") 'counsel-git)
+   (global-set-key (kbd "C-c j") 'counsel-git-grep)
+   (global-set-key (kbd "C-c k") 'counsel-ag)
+   (global-set-key (kbd "C-x l") 'counsel-locate)
+   (global-set-key (kbd "C-S-o") 'counsel-rhythmbox)
+   (define-key minibuffer-local-map (kbd "C-r") 'counsel-minibuffer-history)
+   #+end_src
+
+** counsel
+   #+begin_src emacs-lisp :tangle yes
+   (use-package counsel
+   :after ivy
+   :ensure t
+   :config (counsel-mode))
+   #+end_src
+
+** themes
+   #+begin_src emacs-lisp :tangle yes
+   (use-package doom-themes
+   :ensure t)
+   #+end_src
+*** modeline
+    #+begin_src emacs-lisp :tangle yes
+    (use-package doom-modeline
+    :ensure t
+    :init (doom-modeline-mode 1)
+    :custom ((doom-modeline-height 15)))
+    #+end_src
+** rainbow delimiters
+   #+begin_src emacs-lisp :tangle yes
+   (use-package rainbow-delimiters
+   :ensure t
+   :hook (prog-mode . rainbow-delimiters-mode))
+   #+end_src
+** all the icons
+   #+begin_src emacs-lisp :tangle yes
+   (use-package all-the-icons
+   :ensure t)
+   #+end_src
+** evil
+   #+begin_src emacs-lisp :tangle yes
+   (use-package evil
+   :ensure t
+   :defer nil
+   :init
+   (setq evil-want-keybinding nil)
+   (setq evil-want-C-u-scroll t)
+   :config
+   (evil-mode 1)
+   (evil-set-undo-system 'undo-tree))
+   #+end_src
+*** evil collection
+   #+begin_src emacs-lisp :tangle yes
+   (use-package evil-collection
+    :after evil
+    :ensure t
+    :config
+    (evil-collection-init))
+
+   #+end_src
+** magit
+   #+begin_src emacs-lisp :tangle yes
+   (use-package magit
+   :ensure t)
+   #+end_src
+** projectile
+ #+BEGIN_SRC emacs-lisp :tangle yes
+ (use-package projectile
+   :ensure t
+   :diminish projectile-mode
+   :config (projectile-mode)
+   :demand t
+   :bind-keymap
+   ("C-c p" . projectile-command-map)
+   :init
+   (when (file-directory-p "~/dev")
+     (setq projectile-project-search-path '("~/dev")))
+   (setq projectile-switch-project-action #'projectile-dired))
+ #+END_SRC 
+** dashboard
+   #+begin_src emacs-lisp :tangle yes
+   (use-package dashboard
+   :ensure t
+   :config (dashboard-setup-startup-hook))
+   #+end_src
